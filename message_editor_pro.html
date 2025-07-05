@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Editor Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Default theme (Ocean) */
+            --primary-gradient-start: #1e3c72;
+            --primary-gradient-end: #2a5298;
+            --card-bg: rgba(255, 255, 255, 0.15);
+            --card-hover: rgba(255, 255, 255, 0.2);
+            --text-primary: #fff;
+            --text-secondary: rgba(255, 255, 255, 0.9);
+            --success-color: #4CAF50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+        }
+
+        /* Theme variations */
+        body.theme-sunset {
+            --primary-gradient-start: #ff6b6b;
+            --primary-gradient-end: #feca57;
+        }
+
+        body.theme-northern-lights {
+            --primary-gradient-start: #00d2d3;
+            --primary-gradient-end: #54a0ff;
+        }
+
+        body.theme-midnight {
+            --primary-gradient-start: #0f0c29;
+            --primary-gradient-end: #302b63;
+        }
+
+        body.theme-forest {
+            --primary-gradient-start: #134e5e;
+            --primary-gradient-end: #71b280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: 20px;
+            transition: background 0.5s ease;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.6); }
+            100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .header p {
+            animation: slideIn 0.7s ease-out;
+        }
+
+        /* Theme Switcher */
+        .theme-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.2);
+            border-color: white;
+        }
+
+        .theme-btn.active {
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .theme-ocean { background: linear-gradient(135deg, #1e3c72, #2a5298); }
+        .theme-sunset { background: linear-gradient(135deg, #ff6b6b, #feca57); }
+        .theme-northern { background: linear-gradient(135deg, #00d2d3, #54a0ff); }
+        .theme-midnight { background: linear-gradient(135deg, #0f0c29, #302b63); }
+        .theme-forest { background: linear-gradient(135deg, #134e5e, #71b280); }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideIn 0.8s ease-out;
+            transition: transform 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-2px);
+        }
+
+        .panel h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: move;
+            border: 2px solid transparent;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            background: var(--card-hover);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .product-card.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        .product-card.deleting {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        .product-card.sold-out {
+            opacity: 0.7;
+        }
+
+        .product-card.sold-out .product-name,
+        .product-card.sold-out .product-desc,
+        .product-card.sold-out .product-price {
+            text-decoration: line-through;
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .product-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .product-desc {
+            font-style: italic;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .product-prices {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .product-price {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 0.9em;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-icon {
+            padding: 6px 8px;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: var(--success-color);
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .btn-add {
+            width: 100%;
+            margin-top: 15px;
+            justify-content: center;
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px dashed rgba(76, 175, 80, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .btn-add:hover {
+            background: rgba(76, 175, 80, 0.5);
+            border-style: solid;
+            animation: none;
+        }
+
+        .preview-content {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .preview-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .preview-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .preview-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .price-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .price-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .price-item input {
+            flex: 1;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .action-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 30px;
+            border-radius: 30px;
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: slideIn 1s ease-out;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-available {
+            background: var(--success-color);
+        }
+
+        .status-sold-out {
+            background: var(--danger-color);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            opacity: 0.7;
+        }
+
+        .footer-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-text {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: var(--success-color);
+        }
+
+        .toast.error {
+            background: var(--danger-color);
+        }
+
+        .toast.info {
+            background: #2196F3;
+        }
+
+        /* Keyboard shortcuts hint */
+        .shortcuts-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .shortcuts-hint:hover {
+            opacity: 1;
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            position: absolute;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Sound toggle */
+        .sound-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sound-toggle:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+
+        .sound-toggle.muted {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Message Editor Pro</h1>
+            <p>Drag products to reorder • Click to edit • Preview in real-time</p>
+        </div>
+
+        <!-- Theme Switcher -->
+        <div class="theme-switcher">
+            <div class="theme-btn theme-ocean active" onclick="setTheme('ocean')" title="Ocean"></div>
+            <div class="theme-btn theme-sunset" onclick="setTheme('sunset')" title="Sunset"></div>
+            <div class="theme-btn theme-northern" onclick="setTheme('northern-lights')" title="Northern Lights"></div>
+            <div class="theme-btn theme-midnight" onclick="setTheme('midnight')" title="Midnight"></div>
+            <div class="theme-btn theme-forest" onclick="setTheme('forest')" title="Forest"></div>
+        </div>
+
+        <div class="main-grid">
+            <div class="panel">
+                <h2>📦 Products</h2>
+                <div id="productList" class="product-list">
+                    <div class="loading">Loading products...</div>
+                </div>
+                <button class="btn btn-add" onclick="showAddProductModal()">
+                    ➕ Add New Product
+                </button>
+            </div>
+
+            <div class="panel">
+                <h2>👁️ Preview</h2>
+                <div id="preview" class="preview-content">
+                    <div class="loading">Loading preview...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn btn-primary" onclick="saveChanges()">
+            💾 Save Changes
+        </button>
+        <button class="btn" onclick="cancelChanges()">
+            ❌ Cancel
+        </button>
+    </div>
+
+    <!-- Sound Toggle -->
+    <div class="sound-toggle" onclick="toggleSound()" title="Toggle sounds">
+        <span id="soundIcon">🔊</span>
+    </div>
+
+    <!-- Keyboard Shortcuts Hint -->
+    <div class="shortcuts-hint">
+        <strong>Shortcuts:</strong> Ctrl+S Save • Del Delete • Ctrl+Z Undo
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Add Product</h3>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <div class="form-group">
+                    <label>Product Name (will be uppercase)</label>
+                    <input type="text" id="productName" required placeholder="e.g., KETAMINE R-TYPE">
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="productDesc" required placeholder="e.g., Special K, Wormhole, Horses">
+                </div>
+                
+                <div class="form-group">
+                    <label>Prices</label>
+                    <div id="priceList" class="price-list">
+                        <div class="price-item">
+                            <input type="text" class="price-input" placeholder="e.g., 1g = 15.000kr" required>
+                            <button type="button" class="btn btn-icon btn-danger" onclick="removePrice(this)">❌</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn" onclick="addPriceField()">➕ Add Price</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="productSoldOut"> Mark as sold out
+                    </label>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Telegram WebApp API
+        const tg = window.Telegram?.WebApp;
+        
+        // Initialize Telegram WebApp
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        // Global state
+        let products = [];
+        let footer = '';
+        let editingIndex = -1;
+        let soundEnabled = true;
+        let undoStack = [];
+        let redoStack = [];
+        let currentTheme = 'ocean';
+
+        // Sound effects
+        const sounds = {
+            click: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmFgU7k9n1unEiBC13yO/eizEIHWq+8+OWT'),
+            success: new Audio('data:audio/wav;base64,UklGRvwFAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YdgFAAA='),
+            delete: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQo='),
+            whoosh: new Audio('data:audio/wav;base64,UklGRvwFAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQ==')
+        };
+
+        // Initialize sounds
+        Object.values(sounds).forEach(sound => {
+            sound.volume = 0.3;
+        });
+
+        // Play sound effect
+        function playSound(type) {
+            if (soundEnabled && sounds[type]) {
+                sounds[type].currentTime = 0;
+                sounds[type].play().catch(() => {});
+            }
+        }
+
+        // Toggle sound
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.querySelector('.sound-toggle').classList.toggle('muted', !soundEnabled);
+            document.getElementById('soundIcon').textContent = soundEnabled ? '🔊' : '🔇';
+            playSound('click');
+            showToast(soundEnabled ? 'Sounds enabled' : 'Sounds muted', 'info');
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Set theme
+        function setTheme(theme) {
+            playSound('click');
+            currentTheme = theme;
+            document.body.className = `theme-${theme}`;
+            
+            // Update active theme button
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Save theme preference
+            localStorage.setItem('selectedTheme', theme);
+            showToast(`Theme changed to ${theme}`, 'info');
+        }
+
+        // Create confetti
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6ab04c'];
+            const confettiCount = 50;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 5000);
+                }, i * 30);
+            }
+        }
+
+        // Save state for undo
+        function saveState() {
+            undoStack.push({
+                products: JSON.parse(JSON.stringify(products)),
+                footer: footer
+            });
+            redoStack = []; // Clear redo stack when new action is performed
+            
+            // Limit undo stack size
+            if (undoStack.length > 20) {
+                undoStack.shift();
+            }
+        }
+
+        // Undo action
+        function undo() {
+            if (undoStack.length > 0) {
+                redoStack.push({
+                    products: JSON.parse(JSON.stringify(products)),
+                    footer: footer
+                });
+                
+                const previousState = undoStack.pop();
+                products = previousState.products;
+                footer = previousState.footer;
+                
+                renderProducts();
+                updatePreview();
+                setupDragAndDrop();
+                playSound('whoosh');
+                showToast('Undone', 'info');
+            }
+        }
+
+        // Redo action
+        function redo() {
+            if (redoStack.length > 0) {
+                undoStack.push({
+                    products: JSON.parse(JSON.stringify(products)),
+                    footer: footer
+                });
+                
+                const nextState = redoStack.pop();
+                products = nextState.products;
+                footer = nextState.footer;
+                
+                renderProducts();
+                updatePreview();
+                setupDragAndDrop();
+                playSound('whoosh');
+                showToast('Redone', 'info');
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S to save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveChanges();
+            }
+            
+            // Ctrl+Z to undo
+            if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undo();
+            }
+            
+            // Ctrl+Shift+Z or Ctrl+Y to redo
+            if ((e.ctrlKey && e.shiftKey && e.key === 'Z') || (e.ctrlKey && e.key === 'y')) {
+                e.preventDefault();
+                redo();
+            }
+            
+            // Delete key to delete selected product
+            if (e.key === 'Delete' && document.activeElement.tagName !== 'INPUT') {
+                // This would need product selection feature
+            }
+            
+            // Escape to close modal
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        window.onload = function() {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('selectedTheme') || 'ocean';
+            if (savedTheme !== 'ocean') {
+                document.body.className = `theme-${savedTheme}`;
+                document.querySelector(`.theme-${savedTheme.replace('-lights', '')}`).classList.add('active');
+                document.querySelector('.theme-ocean').classList.remove('active');
+            }
+            
+            // Get initial data from Telegram
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+                // Parse products from start_param (base64 encoded)
+                try {
+                    const data = JSON.parse(atob(tg.initDataUnsafe.start_param));
+                    products = data.products || [];
+                    footer = data.footer || '';
+                } catch (e) {
+                    console.error('Failed to parse initial data:', e);
+                }
+            } else {
+                // Demo data for testing
+                products = [
+                    {
+                        name: 'AMPHETAMINE RJÓMI',
+                        description: '(Spitt-Hradi-Gonni-Speedi)',
+                        prices: ['1g = 5000kr.', '5g = 20.000kr.'],
+                        strikethrough: false
+                    },
+                    {
+                        name: 'KETAMINE R-TYPE',
+                        description: '(Special K, Wormhole, Horses)',
+                        prices: ['1g = 15.000kr.'],
+                        strikethrough: false
+                    },
+                    {
+                        name: 'CRYSTAL METH',
+                        description: '(Ice-Ís-Tina)',
+                        prices: ['1gr = 25.000kr.'],
+                        strikethrough: false
+                    }
+                ];
+                footer = 'TRY IT BEFORE YOU BUY ITaaaaa\n101 REYKJAVÍK\nÍSLENSK VERSLUN\nHEILDSALA ER Í BOÐI';
+            }
+            
+            renderProducts();
+            updatePreview();
+            setupDragAndDrop();
+            
+            // Add click sound to all buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.btn, .theme-btn')) {
+                    playSound('click');
+                }
+            });
+        };
+
+        function renderProducts() {
+            const container = document.getElementById('productList');
+            container.innerHTML = '';
+            
+            products.forEach((product, index) => {
+                const card = document.createElement('div');
+                card.className = `product-card ${product.strikethrough ? 'sold-out' : ''}`;
+                card.draggable = true;
+                card.dataset.index = index;
+                card.style.animationDelay = `${index * 0.1}s`;
+                
+                card.innerHTML = `
+                    <div class="product-header">
+                        <div>
+                            <span class="status-indicator ${product.strikethrough ? 'status-sold-out' : 'status-available'}"></span>
+                            <span class="product-name">${product.name}</span>
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn btn-icon" onclick="toggleSoldOut(${index})" title="Toggle sold out">
+                                ${product.strikethrough ? '✅' : '❌'}
+                            </button>
+                            <button class="btn btn-icon" onclick="editProduct(${index})" title="Edit">✏️</button>
+                            <button class="btn btn-icon btn-danger" onclick="deleteProduct(${index})" title="Delete">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="product-desc">${product.description}</div>
+                    <div class="product-prices">
+                        ${product.prices.map(price => `<span class="product-price">${price}</span>`).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function updatePreview() {
+            const preview = document.getElementById('preview');
+            let html = '';
+            
+            // Build products HTML
+            products.forEach((product, index) => {
+                if (index > 0) html += '<br><br>';
+                
+                if (product.strikethrough) {
+                    html += `<s><b><u>${product.name}</u></b></s><br>`;
+                    html += `<s><i>${product.description}</i></s><br>`;
+                    product.prices.forEach(price => {
+                        html += `<s><code>${price}</code></s><br>`;
+                    });
+                } else {
+                    html += `<b><u>${product.name}</u></b><br>`;
+                    html += `<i>${product.description}</i><br>`;
+                    product.prices.forEach(price => {
+                        html += `<code>${price}</code><br>`;
+                    });
+                }
+            });
+            
+            // Add footer
+            if (footer) {
+                html += '<div class="footer-section">';
+                html += '<div class="footer-text">' + footer.replace(/\n/g, '<br>') + '</div>';
+                html += '</div>';
+            }
+            
+            preview.innerHTML = html || '<div class="loading">No products yet</div>';
+        }
+
+        function setupDragAndDrop() {
+            let draggedElement = null;
+            let draggedIndex = null;
+
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('product-card')) {
+                    draggedElement = e.target;
+                    draggedIndex = parseInt(e.target.dataset.index);
+                    e.target.classList.add('dragging');
+                    playSound('whoosh');
+                }
+            });
+
+            document.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('product-card')) {
+                    e.target.classList.remove('dragging');
+                }
+            });
+
+            document.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const container = document.getElementById('productList');
+                const afterElement = getDragAfterElement(container, e.clientY);
+                
+                if (afterElement == null) {
+                    container.appendChild(draggedElement);
+                } else {
+                    container.insertBefore(draggedElement, afterElement);
+                }
+            });
+
+            document.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (draggedElement) {
+                    const newIndex = [...document.querySelectorAll('.product-card')].indexOf(draggedElement);
+                    if (draggedIndex !== newIndex) {
+                        saveState();
+                        const [movedProduct] = products.splice(draggedIndex, 1);
+                        products.splice(newIndex, 0, movedProduct);
+                        renderProducts();
+                        updatePreview();
+                        setupDragAndDrop();
+                        playSound('click');
+                    }
+                }
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.product-card:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function showAddProductModal() {
+            editingIndex = -1;
+            document.getElementById('modalTitle').textContent = 'Add Product';
+            document.getElementById('productForm').reset();
+            document.getElementById('priceList').innerHTML = `
+                <div class="price-item">
+                    <input type="text" class="price-input" placeholder="e.g., 1g = 15.000kr" required>
+                    <button type="button" class="btn btn-icon btn-danger" onclick="removePrice(this)">❌</button>
+                </div>
+            `;
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        function editProduct(index) {
+            editingIndex = index;
+            const product = products[index];
+            
+            document.getElementById('modalTitle').textContent = 'Edit Product';
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productDesc').value = product.description.replace(/[()]/g, '');
+            document.getElementById('productSoldOut').checked = product.strikethrough;
+            
+            // Load prices
+            const priceList = document.getElementById('priceList');
+            priceList.innerHTML = '';
+            product.prices.forEach(price => {
+                const priceItem = document.createElement('div');
+                priceItem.className = 'price-item';
+                priceItem.innerHTML = `
+                    <input type="text" class="price-input" value="${price}" required>
+                    <button type="button" class="btn btn-icon btn-danger" onclick="removePrice(this)">❌</button>
+                `;
+                priceList.appendChild(priceItem);
+            });
+            
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        function saveProduct(event) {
+            event.preventDefault();
+            saveState();
+            
+            const name = document.getElementById('productName').value.toUpperCase();
+            const desc = document.getElementById('productDesc').value;
+            const soldOut = document.getElementById('productSoldOut').checked;
+            
+            // Get all prices
+            const prices = [];
+            document.querySelectorAll('.price-input').forEach(input => {
+                if (input.value.trim()) {
+                    prices.push(input.value.trim());
+                }
+            });
+            
+            const product = {
+                name: name,
+                description: `(${desc})`,
+                prices: prices,
+                strikethrough: soldOut
+            };
+            
+            if (editingIndex >= 0) {
+                products[editingIndex] = product;
+                showToast('Product updated!', 'success');
+            } else {
+                products.push(product);
+                showToast('Product added!', 'success');
+            }
+            
+            renderProducts();
+            updatePreview();
+            setupDragAndDrop();
+            closeModal();
+            playSound('success');
+        }
+
+        function deleteProduct(index) {
+            if (confirm(`Delete ${products[index].name}?`)) {
+                saveState();
+                
+                // Add deleting animation
+                const card = document.querySelectorAll('.product-card')[index];
+                card.classList.add('deleting');
+                playSound('delete');
+                
+                setTimeout(() => {
+                    products.splice(index, 1);
+                    renderProducts();
+                    updatePreview();
+                    setupDragAndDrop();
+                    showToast('Product deleted', 'info');
+                }, 500);
+            }
+        }
+
+        function toggleSoldOut(index) {
+            saveState();
+            products[index].strikethrough = !products[index].strikethrough;
+            renderProducts();
+            updatePreview();
+            setupDragAndDrop();
+            showToast(products[index].strikethrough ? 'Marked as sold out' : 'Marked as available', 'info');
+        }
+
+        function addPriceField() {
+            const priceList = document.getElementById('priceList');
+            const priceItem = document.createElement('div');
+            priceItem.className = 'price-item';
+            priceItem.innerHTML = `
+                <input type="text" class="price-input" placeholder="e.g., 5g = 20.000kr">
+                <button type="button" class="btn btn-icon btn-danger" onclick="removePrice(this)">❌</button>
+            `;
+            priceList.appendChild(priceItem);
+            playSound('click');
+        }
+
+        function removePrice(button) {
+            const priceItems = document.querySelectorAll('.price-item');
+            if (priceItems.length > 1) {
+                button.parentElement.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    button.parentElement.remove();
+                }, 300);
+                playSound('delete');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+
+        function saveChanges() {
+            const data = {
+                products: products,
+                footer: footer
+            };
+            
+            playSound('success');
+            createConfetti();
+            showToast('Changes saved successfully! 🎉', 'success');
+            
+            if (tg) {
+                // Send data back to bot
+                tg.sendData(JSON.stringify(data));
+            } else {
+                // For testing
+                console.log('Saving:', data);
+            }
+        }
+
+        function cancelChanges() {
+            if (tg) {
+                tg.close();
+            } else {
+                if (confirm('Discard changes?')) {
+                    window.close();
+                }
+            }
+        }
+
+        // Close modal on outside click
+        document.getElementById('productModal').addEventListener('click', (e) => {
+            if (e.target.id === 'productModal') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
